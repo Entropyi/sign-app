@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useEffect, useRef } from 'react'; // Import useRef
+import React, { useEffect, useRef } from 'react';
 import Image from "next/image";
 import styles from "./page.module.css";
 
 export default function Home() {
-  const canvasRef = useRef(null); // Define canvasRef using useRef
+  const canvasRef = useRef(null);
 
   useEffect(() => {
-    const canvas = canvasRef.current; // Access the canvas element through ref
+    const canvas = canvasRef.current;
     if (canvas) {
       const ctx = canvas.getContext("2d");
       var drawing = false;
@@ -16,9 +16,13 @@ export default function Home() {
       var currX, currY;
       var signature = document.getElementsByName('signature')[0];
 
+      // Duplicate addEventListener lines for both mouse and touch events
       canvas.addEventListener("mousemove", draw);
       canvas.addEventListener("mouseup", stop);
       canvas.addEventListener("mousedown", start);
+      canvas.addEventListener("touchmove", draw);
+      canvas.addEventListener("touchend", stop);
+      canvas.addEventListener("touchstart", start);
 
       function start(e) {
         drawing = true;
@@ -34,8 +38,17 @@ export default function Home() {
         if (!drawing) {
           return;
         }
-        var clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
-        var clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+        var clientX, clientY;
+
+        // Determine clientX and clientY based on event type
+        if (e.type.includes('touch')) {
+          clientX = e.touches[0].clientX;
+          clientY = e.touches[0].clientY;
+        } else {
+          clientX = e.clientX;
+          clientY = e.clientY;
+        }
+
         currX = clientX - canvas.offsetLeft;
         currY = clientY - canvas.offsetTop;
         if (!prevX && !prevY) {
@@ -63,7 +76,7 @@ export default function Home() {
         return false;
       }
     }
-  }, []); // Empty dependency array ensures this effect runs once on mount
+  }, []);
 
   return (
       <>
