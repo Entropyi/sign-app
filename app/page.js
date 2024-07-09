@@ -1,95 +1,82 @@
+"use client";
+
+import React, { useEffect, useRef } from 'react'; // Import useRef
 import Image from "next/image";
 import styles from "./page.module.css";
 
 export default function Home() {
+  const canvasRef = useRef(null); // Define canvasRef using useRef
+
+  useEffect(() => {
+    const canvas = canvasRef.current; // Access the canvas element through ref
+    if (canvas) {
+      const ctx = canvas.getContext("2d");
+      var drawing = false;
+      var prevX, prevY;
+      var currX, currY;
+      var signature = document.getElementsByName('signature')[0];
+
+      canvas.addEventListener("mousemove", draw);
+      canvas.addEventListener("mouseup", stop);
+      canvas.addEventListener("mousedown", start);
+
+      function start(e) {
+        drawing = true;
+      }
+
+      function stop() {
+        drawing = false;
+        prevX = prevY = null;
+        signature.value = canvas.toDataURL();
+      }
+
+      function draw(e) {
+        if (!drawing) {
+          return;
+        }
+        var clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+        var clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+        currX = clientX - canvas.offsetLeft;
+        currY = clientY - canvas.offsetTop;
+        if (!prevX && !prevY) {
+          prevX = currX;
+          prevY = currY;
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(prevX, prevY);
+        ctx.lineTo(currX, currY);
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.closePath();
+
+        prevX = currX;
+        prevY = currY;
+      }
+
+      function onSubmit(e) {
+        console.log({
+          'name': document.getElementsByName('name')[0].value,
+          'signature': signature.value,
+        });
+        return false;
+      }
+    }
+  }, []); // Empty dependency array ensures this effect runs once on mount
+
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>app/page.js</code>
-        </p>
+      <>
         <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+          <input name="name" placeholder="Your name" required />
         </div>
-      </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore starter templates for Next.js.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+        <div>
+          <canvas ref={canvasRef} id="signature" width="300" height="100"></canvas>
+        </div>
+        <div>
+          <input type="hidden" name="signature" />
+        </div>
+        <button type="submit">Send</button>
+      </>
   );
 }
